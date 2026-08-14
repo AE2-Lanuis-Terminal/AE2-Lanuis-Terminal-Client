@@ -1,0 +1,202 @@
+# 发行：CHANGELOG 新增 ## [X.Y.Z] 时，检出 Web@vX.Y.Z 构建 NSIS + APK
+# 默认 PUBLISH=false：只 upload-artifact
+name: release
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      force_version:
+        description: '强制发行版本（同时作为 Web tag，如 0.2.0）'
+        required: false
+        default: ''
+      web_tag:
+        description: '覆盖 Web tag（默认 v{version}）'
+        required: false
+        default: ''
+
+env:
+  PUBLISH: 'false'
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.detect.outputs.is_release }}
+      version: ${{ steps.detect.outputs.version }}
+      web_ref: ${{ steps.detect.outputs.web_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: detect
+        shell: bash
+        run: |
+          chmod +x scripts/is-release-changelog.sh
+          BASE="origin/main"
+          if [[ "${{ github.event_name }}" == "push" && -n "${{ github.event.before }}" && "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]]; then
+            BASE="${{ github.event.before }}"
+          fi
+          set +e
+          OUT="$(./scripts/is-release-changelog.sh "$BASE" 2>/dev/null)"
+          CODE=$?
+          set -e
+          echo "base=$BASE"
+          echo "$OUT"
+          IS=false
+          VER=""
+          if [[ "$CODE" -eq 0 ]]; then
+            IS=true
+            VER="$(echo "$OUT" | sed -n 's/^RELEASE_VERSION=//p' | head -1)"
+          fi
+          if [[ -n "${{ inputs.force_version }}" ]]; then
+            IS=true
+            VER="${{ inputs.force_version }}"
+          fi
+          WEB_REF="v${VER}"
+          if [[ -n "${{ inputs.web_tag }}" ]]; then
+            WEB_REF="${{ inputs.web_tag }}"
+          fi
+          echo "is_release=$IS" >> "$GITHUB_OUTPUT"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "web_ref=$WEB_REF" >> "$GITHUB_OUTPUT"
+
+  windows-nsis:
+    needs: detect
+    if: needs.detect.outputs.is_release == 'true'
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: client
+
+      - uses: actions/checkout@v4
+        with:
+          repository: AE2-Lanuis-Terminal/AE2-Lanuis-Terminal-Web
+          path: web
+          ref: ${{ needs.detect.outputs.web_ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            client/package.json
+            web/package.json
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify client version
+        if: needs.detect.outputs.version != ''
+        shell: bash
+        run: |
+          EXPECT="${{ needs.detect.outputs.version }}"
+          ACTUAL="$(node -p "require('./package.json').version")"
+          test "$ACTUAL" = "$EXPECT"
+
+      - run: npm install
+      - working-directory: web
+        run: npm install --legacy-peer-deps
+      - working-directory: web
+        run: npm run build
+      - run: npm run tauri:build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-windows-v${{ needs.detect.outputs.version }}
+          path: |
+            client/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: warn
+
+  android-apk:
+    needs: detect
+    if: needs.detect.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: client
+
+      - uses: actions/checkout@v4
+        with:
+          repository: AE2-Lanuis-Terminal/AE2-Lanuis-Terminal-Web
+          path: web
+          ref: ${{ needs.detect.outputs.web_ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            client/package.json
+            web/package.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - run: npm install
+      - working-directory: web
+        run: npm install --legacy-peer-deps
+      - working-directory: web
+        run: npm run build
+
+      - name: Init android project if missing
+        run: |
+          if [ ! -d src-tauri/gen/android ]; then
+            npx tauri android init
+          fi
+
+      - name: Build Android APK (aarch64)
+        run: npx tauri android build --target aarch64 --apk
+        env:
+          NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-android-v${{ needs.detect.outputs.version }}
+          path: |
+            client/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+            client/src-tauri/gen/android/**/apk/**/*.apk
+          if-no-files-found: warn
+
+  publish:
+    needs: [detect, windows-nsis, android-apk]
+    if: needs.detect.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        if: ${{ env.PUBLISH == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create GitHub Release
+        if: ${{ env.PUBLISH == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.detect.outputs.version }}
+          name: Client v${{ needs.detect.outputs.version }}
+          body: |
+            Depends on Web `${{ needs.detect.outputs.web_ref }}`.
+          files: |
+            dist/**/*.exe
+            dist/**/*.apk
+          generate_release_notes: true

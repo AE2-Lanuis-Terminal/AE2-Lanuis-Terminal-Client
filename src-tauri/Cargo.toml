@@ -1,0 +1,20 @@
+[package]
+name = "ae2-lanuis-client"
+version = "0.1.0"
+description = "AE2 Lanuis Terminal Client (Windows desktop + Android)"
+authors = ["Lanuis"]
+license = "MIT"
+edition = "2021"
+
+[lib]
+name = "ae2_lanuis_client_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri-plugin-notification = "2"

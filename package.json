@@ -1,0 +1,26 @@
+{
+  "name": "ae2-lanuis-client",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "AE2 Lanuis Terminal Client — Windows desktop + Android (Tauri 2)",
+  "scripts": {
+    "dev": "npm run --prefix ../web dev -- --port 1420 --strictPort",
+    "build": "npm run --prefix ../web build",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "android:init": "tauri android init",
+    "android:dev": "tauri android dev",
+    "android:build": "tauri android build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-notification": "^2",
+    "@tauri-apps/plugin-store": "^2"
+  }
+}

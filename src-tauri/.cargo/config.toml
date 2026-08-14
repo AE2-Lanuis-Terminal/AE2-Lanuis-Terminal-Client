@@ -1,0 +1,6 @@
+# 可选：国内镜像加速（若不需要可删除本文件）
+[source.crates-io]
+replace-with = "ustc"
+
+[source.ustc]
+registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"

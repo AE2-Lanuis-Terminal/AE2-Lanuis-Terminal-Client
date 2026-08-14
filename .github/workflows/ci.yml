@@ -1,0 +1,102 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  desktop-smoke:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - name: Checkout Client
+        uses: actions/checkout@v4
+        with:
+          path: client
+
+      - name: Checkout Web (main)
+        uses: actions/checkout@v4
+        with:
+          repository: AE2-Lanuis-Terminal/AE2-Lanuis-Terminal-Web
+          path: web
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            client/package.json
+            web/package.json
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install client deps
+        run: npm install
+
+      - name: Install web deps
+        working-directory: web
+        run: npm install --legacy-peer-deps
+
+      - name: Build web
+        working-directory: web
+        run: npm run build
+
+      - name: Tauri build (NSIS smoke)
+        run: npm run tauri:build
+        continue-on-error: true
+
+  android-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - name: Checkout Client
+        uses: actions/checkout@v4
+        with:
+          path: client
+
+      - name: Checkout Web (main)
+        uses: actions/checkout@v4
+        with:
+          repository: AE2-Lanuis-Terminal/AE2-Lanuis-Terminal-Web
+          path: web
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            client/package.json
+            web/package.json
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Install client deps
+        run: npm install
+
+      - name: Install web deps
+        working-directory: web
+        run: npm install --legacy-peer-deps
+
+      - name: Build web
+        working-directory: web
+        run: npm run build
+
+      - name: Cargo check (android lib)
+        working-directory: client/src-tauri
+        run: cargo check --lib --target aarch64-linux-android
+        continue-on-error: true
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}

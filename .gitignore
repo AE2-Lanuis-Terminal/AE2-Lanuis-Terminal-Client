@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-apk/
+package-lock.json
+npm-shrinkwrap.json
+yarn.lock
+pnpm-lock.yaml
+src-tauri/Cargo.lock
+src-tauri/target/
+src-tauri/gen/android/
+src-tauri/gen/apple/
+.DS_Store
+Thumbs.db
+*.log
