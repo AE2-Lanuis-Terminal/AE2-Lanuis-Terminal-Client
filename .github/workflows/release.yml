@@ -1,4 +1,4 @@
-# 发行：CHANGELOG 新增 ## [X.Y.Z] 时，检出 Web@vX.Y.Z 构建 NSIS + APK
+# 发行：CHANGELOG 新增 ## [X.Y.Z] 时，按 web submodule（或 web_tag 覆盖）构建 NSIS + APK
 # 默认 PUBLISH=false：只 upload-artifact
 name: release
 
@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
     inputs:
       force_version:
-        description: '强制发行版本（同时作为 Web tag，如 0.2.0）'
+        description: '强制发行版本（如 0.2.0）'
         required: false
         default: ''
       web_tag:
-        description: '覆盖 Web tag（默认 v{version}）'
+        description: '覆盖 Web tag（默认用仓库内 submodule 指针；如 v0.2.0）'
         required: false
         default: ''
 
@@ -55,9 +55,9 @@ jobs:
             IS=true
             VER="${{ inputs.force_version }}"
           fi
-          WEB_REF="v${VER}"
-          if [[ -n "${{ inputs.web_tag }}" ]]; then
-            WEB_REF="${{ inputs.web_tag }}"
+          WEB_REF="${{ inputs.web_tag }}"
+          if [[ -z "$WEB_REF" && -n "$VER" ]]; then
+            WEB_REF="v${VER}"
           fi
           echo "is_release=$IS" >> "$GITHUB_OUTPUT"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
@@ -67,26 +67,24 @@ jobs:
     needs: detect
     if: needs.detect.outputs.is_release == 'true'
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: client
     steps:
       - uses: actions/checkout@v4
         with:
-          path: client
+          submodules: recursive
 
-      - uses: actions/checkout@v4
-        with:
-          repository: AE2-Lanuis-Terminal/AE2-Lanuis-Terminal-Web
-          path: web
-          ref: ${{ needs.detect.outputs.web_ref }}
+      - name: Pin web submodule
+        if: needs.detect.outputs.web_ref != ''
+        shell: bash
+        run: |
+          git -C web fetch --tags origin
+          git -C web checkout "${{ needs.detect.outputs.web_ref }}"
 
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: |
-            client/package.json
+            package.json
             web/package.json
 
       - uses: dtolnay/rust-toolchain@stable
@@ -110,33 +108,31 @@ jobs:
         with:
           name: client-windows-v${{ needs.detect.outputs.version }}
           path: |
-            client/src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: warn
 
   android-apk:
     needs: detect
     if: needs.detect.outputs.is_release == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client
     steps:
       - uses: actions/checkout@v4
         with:
-          path: client
+          submodules: recursive
 
-      - uses: actions/checkout@v4
-        with:
-          repository: AE2-Lanuis-Terminal/AE2-Lanuis-Terminal-Web
-          path: web
-          ref: ${{ needs.detect.outputs.web_ref }}
+      - name: Pin web submodule
+        if: needs.detect.outputs.web_ref != ''
+        shell: bash
+        run: |
+          git -C web fetch --tags origin
+          git -C web checkout "${{ needs.detect.outputs.web_ref }}"
 
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: |
-            client/package.json
+            package.json
             web/package.json
 
       - uses: actions/setup-java@v4
@@ -171,8 +167,8 @@ jobs:
         with:
           name: client-android-v${{ needs.detect.outputs.version }}
           path: |
-            client/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-            client/src-tauri/gen/android/**/apk/**/*.apk
+            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+            src-tauri/gen/android/**/apk/**/*.apk
           if-no-files-found: warn
 
   publish:

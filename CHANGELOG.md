@@ -6,6 +6,10 @@ Client 发版须声明依赖的 **Web tag**（如 `v0.1.0`）。总流程见 [do
 
 ## [Unreleased]
 
+### Changed
+
+- `web/` 改为 git submodule（不再依赖兄弟目录 `../web`）
+
 ### Added
 
 - CI / Release workflow 脚手架（默认只上传 artifact）

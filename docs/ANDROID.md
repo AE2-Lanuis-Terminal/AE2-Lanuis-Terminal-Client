@@ -4,7 +4,7 @@
 
 - Android Studio、SDK、NDK、JDK 17+
 - 环境变量：`ANDROID_HOME`、可选 `NDK_HOME`（见 https://v2.tauri.app/start/prerequisites/）
-- 兄弟目录 `../web` 可用（或先跑 `scripts/link-web.ps1`）
+- `web/` submodule 已 init（或先跑 `scripts/link-web.ps1`）
 
 ## 初始化
 

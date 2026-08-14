@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $clientRoot = Split-Path -Parent $PSScriptRoot
-$linkPath = Join-Path (Split-Path -Parent $clientRoot) 'web'
+$linkPath = Join-Path $clientRoot 'web'
 
 if (-not $WebPath) {
   $candidates = @(
@@ -33,9 +33,10 @@ if (Test-Path $linkPath) {
     Write-Host "已存在 junction: $linkPath -> $($item.Target)"
     exit 0
   }
-  Write-Error "路径已存在且不是 junction: $linkPath"
+  Write-Error "路径已存在且不是 junction: $linkPath（请先 git submodule update --init，或删除后重试）"
 }
 
 cmd /c "mklink /J `"$linkPath`" `"$WebPath`""
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 Write-Host "OK: $linkPath => $WebPath"
+Write-Host "提示：正式贡献请用 git submodule；本脚本仅本机 Junction 便捷开发。"

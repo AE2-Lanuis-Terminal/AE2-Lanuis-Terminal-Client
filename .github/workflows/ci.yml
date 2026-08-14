@@ -10,28 +10,17 @@ on:
 jobs:
   desktop-smoke:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: client
     steps:
-      - name: Checkout Client
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          path: client
-
-      - name: Checkout Web (main)
-        uses: actions/checkout@v4
-        with:
-          repository: AE2-Lanuis-Terminal/AE2-Lanuis-Terminal-Web
-          path: web
-          ref: main
+          submodules: recursive
 
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: |
-            client/package.json
+            package.json
             web/package.json
 
       - name: Install Rust
@@ -54,28 +43,17 @@ jobs:
 
   android-smoke:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client
     steps:
-      - name: Checkout Client
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          path: client
-
-      - name: Checkout Web (main)
-        uses: actions/checkout@v4
-        with:
-          repository: AE2-Lanuis-Terminal/AE2-Lanuis-Terminal-Web
-          path: web
-          ref: main
+          submodules: recursive
 
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: |
-            client/package.json
+            package.json
             web/package.json
 
       - name: Install Rust
@@ -95,7 +73,7 @@ jobs:
         run: npm run build
 
       - name: Cargo check (android lib)
-        working-directory: client/src-tauri
+        working-directory: src-tauri
         run: cargo check --lib --target aarch64-linux-android
         continue-on-error: true
         env:

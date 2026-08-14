@@ -2,13 +2,15 @@
 
 ## 依赖 Web
 
-构建与开发都通过 `../web`（`package.json` 的 `npm run --prefix ../web …`，`tauri.conf.json` 的 `frontendDist`）。
+`web/` 为 git submodule（见 [.gitmodules](../.gitmodules)）。`package.json` 使用 `--prefix web`，`tauri.conf.json` 的 `frontendDist` 为 `../web/dist`。
 
 | 场景 | 做法 |
 |------|------|
-| 主仓 `--recurse-submodules` | 在 `client/` 下开发，Web 在 `../web` |
-| 单独 clone | 兄弟目录命名为 `web`，或 `.\scripts\link-web.ps1` |
-| CI | 额外 checkout Web 仓到 `web/`（与 `client/` 并列） |
+| 正式 | `git clone --recurse-submodules …` 或 `git submodule update --init` |
+| 本机复用兄弟 Web 仓 | `.\scripts\link-web.ps1`（Junction → `web/`） |
+| CI | `actions/checkout` + `submodules: recursive` |
+
+发版时把 `web` submodule 指针钉到 Web tag `vX.Y.Z`。
 
 ## 平台拆分
 

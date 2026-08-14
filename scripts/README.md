@@ -1,13 +1,13 @@
-# 将兄弟 Web 仓链接为 ../web（Windows Junction）
+# 将已 clone 的 Web 仓链接为本仓 web/（Windows Junction）
 
-Client 构建假定 `../web` 存在（`npm run build` → `npm run --prefix ../web build`）。
+正式流程：`git submodule update --init`（见 [.gitmodules](../.gitmodules)）。
 
-若本机 Web 仓名为 `AE2-Lanuis-Terminal-Web`，运行：
+本脚本仅在本机想复用兄弟目录的 Web 工作区时使用：
 
 ```powershell
 .\scripts\link-web.ps1
-# 或指定路径
+# 或
 .\scripts\link-web.ps1 -WebPath "E:\GIT\AE2-Lanuis-Terminal-Web"
 ```
 
-CI 不使用本脚本，而是 `actions/checkout` 到 `../web`。
+CI 使用 `actions/checkout` 的 `submodules: recursive`，不跑本脚本。

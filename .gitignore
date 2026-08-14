@@ -9,6 +9,9 @@ src-tauri/Cargo.lock
 src-tauri/target/
 src-tauri/gen/android/
 src-tauri/gen/apple/
+web/node_modules/
+web/dist/
+web/package-lock.json
 .DS_Store
 Thumbs.db
 *.log

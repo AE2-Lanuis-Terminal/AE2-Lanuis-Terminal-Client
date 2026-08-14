@@ -6,8 +6,8 @@
   "type": "module",
   "description": "AE2 Lanuis Terminal Client — Windows desktop + Android (Tauri 2)",
   "scripts": {
-    "dev": "npm run --prefix ../web dev -- --port 1420 --strictPort",
-    "build": "npm run --prefix ../web build",
+    "dev": "npm run --prefix web dev -- --port 1420 --strictPort",
+    "build": "npm run --prefix web build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
