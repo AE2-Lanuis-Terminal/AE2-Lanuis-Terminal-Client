@@ -41,6 +41,19 @@ cd src-tauri\gen\android
 
 正式发布以 CI Linux 产物为准；本机 debug 签名 APK 仅供侧载验证。
 
+## 明文 HTTP 与登录 Network Error
+
+模组默认 `http://…:8765`。仅开 `usesCleartextTraffic` 往往不够：Android WebView 仍可能拦跨源请求。
+
+本仓做法：
+
+1. `scripts/enable-android-cleartext.ps1`（`android init` 后）
+2. 前端在 Tauri 下用 `@tauri-apps/plugin-http`（Rust）发 API，不经 WebView `fetch`
+
+登录填 **HTTP 端口**（默认 `8765`），不是 MC `25565`，也不是独立 WebSocket 端口（你配置成 `8766` 时，WS 会在登录后由 health 自动发现）。
+
+建议把 `websocket.port` 设为 `0`（与 HTTP 同端口），少开一个防火墙端口。
+
 ## 与桌面差异
 
 - Rust：`#[cfg(desktop)]` 托盘 / 设置窗；移动端仅连接配置与通知

@@ -158,6 +158,27 @@ jobs:
             npx tauri android init
           fi
 
+      - name: Allow cleartext HTTP (mod default)
+        shell: bash
+        run: |
+          f=src-tauri/gen/android/app/build.gradle.kts
+          test -f "$f"
+          sed -i 's/manifestPlaceholders\["usesCleartextTraffic"\] = "false"/manifestPlaceholders["usesCleartextTraffic"] = "true"/g' "$f"
+          if ! grep -q 'getByName("release")' "$f"; then exit 1; fi
+          if ! grep -A5 'getByName("release")' "$f" | grep -q 'usesCleartextTraffic'; then
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path("src-tauri/gen/android/app/build.gradle.kts")
+          t = p.read_text()
+          needle = 'getByName("release") {'
+          insert = 'getByName("release") {\n            manifestPlaceholders["usesCleartextTraffic"] = "true"'
+          if needle not in t:
+              raise SystemExit("release block missing")
+          p.write_text(t.replace(needle, insert, 1))
+          PY
+          fi
+          grep -n 'usesCleartextTraffic' "$f"
+
       - name: Build Android APK (aarch64)
         run: npx tauri android build --target aarch64 --apk
         env:

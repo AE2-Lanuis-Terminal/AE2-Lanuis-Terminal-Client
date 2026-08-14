@@ -51,6 +51,7 @@ fn run_desktop() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_http::init())
         .setup(|app| {
             tray::create_tray(app.handle())?;
             Ok(())
@@ -85,6 +86,7 @@ fn run_desktop() {
 fn run_mobile() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_http::init())
         .invoke_handler(tauri::generate_handler![
             get_connection_config,
             set_connection_config,

@@ -21,7 +21,8 @@
         "center": true,
         "decorations": false,
         "backgroundColor": "#151a22",
-        "resizable": true
+        "resizable": true,
+        "useHttpsScheme": false
       }
     ],
     "security": {
