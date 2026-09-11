@@ -2,7 +2,7 @@
 
 在 **Windows** 或 **Android** 上使用 AE2 Lanuis 远程终端，无需在浏览器里收藏服务器地址。
 
-前提：游戏服务器已安装 [AE2 Lanuis 模组](https://github.com/AE2-Lanuis-Terminal/AE2-Lanuis-Terminal)，且你已在游戏内绑定密码。
+前提：游戏服务器已安装 [AE2 Lanuis 模组](https://github.com/Lexcubia/AE2-Lanuis-Terminal)，且你已在游戏内绑定密码。
 
 | 平台 | 说明 |
 |------|------|
@@ -35,7 +35,7 @@
 - 开启「完成推送」并允许系统通知后，合成完成可收到通知（需保持应用可在后台联网）  
 - 桌面端可最小化到托盘；具体关闭行为可在设置里选择  
 
-装服、端口与图标等：**[主模组说明](https://github.com/AE2-Lanuis-Terminal/AE2-Lanuis-Terminal)**。
+装服、端口与图标等：**[主模组说明](https://github.com/Lexcubia/AE2-Lanuis-Terminal)**。
 
 ## 开发者
 
