@@ -2,7 +2,7 @@
 
 消费 **Web 仓最新发行 tag**（`vX.Y.Z`）：发行 PR 将 `web` submodule 钉到该 tag，再构建 Windows NSIS 与 Android APK。
 
-总流程：[主仓 docs/RELEASE.md](https://github.com/Lexcubia/AE2-Lanuis-Terminal/blob/main/docs/RELEASE.md)。
+总流程：[主仓 docs/RELEASE.md](https://github.com/AE2-Lanuis-Terminal/AE2-Lanuis-Terminal/blob/main/docs/RELEASE.md)。
 
 ## 发行 PR 清单
 
